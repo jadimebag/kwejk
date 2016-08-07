@@ -1,12 +1,21 @@
 <%- model_class = Mem -%>
+
 <div class="page-header">
 <% @mems.each do |mem| %>
-<p>
-<h1> <%= mem.name %> </h1>
-<%= link_to image_tag(mem.image.url),mem_path(mem) %>
-</p>
+  <p>
+    <h1> <%= mem.name %> </h1>
+    <%= link_to image_tag(mem.image.url),mem_path(mem) %>
+    <%= form_for mem do |f| %>
+      <%= collection_select(:mem, :rate, Rate.get_rate_range, :to_i, :to_i) %>
+      <%= hidden_field_tag :set_rate, true %>
+      <%= f.submit %>
+      Rate: <%= mem.get_rate %>
+
+    <% end %>
+  </p>
 </br>
 <% end %>
 </div>
+
 <%= link_to t('.new', :default => t("helpers.links.new")),
-new_mem_path,:class => 'btn btn-primary' %>
+              new_mem_path,:class => 'btn btn-primary' %>

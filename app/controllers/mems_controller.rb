@@ -3,6 +3,11 @@ class MemsController < ApplicationController
   before_action :authenticate_user!, only: [:edit, :new, :create, :destroy, :update]
   # GET /mems
   # GET /mems.json
+
+  def my_rates
+    @mems = Mem.joins(:rates).where('mems.id = rates.mem_id')
+    render :index
+  end
   def index
     @mems = Mem.get_active
   end
@@ -46,13 +51,24 @@ class MemsController < ApplicationController
   # PATCH/PUT /mems/1
   # PATCH/PUT /mems/1.json
   def update
-    respond_to do |format|
-      if @mem.update(mem_params)
-        format.html { redirect_to @mem, notice: 'Mem was successfully updated.' }
-        format.json { render :show, status: :ok, location: @mem }
+
+    if params[:set_rate] == "true"
+      rate = Rate.where(user_id: current_user.id).find_by_mem_id(@mem.id)
+      if rate.present?
+        rate.update_attributes(rate: params[:mem][:rate])
       else
-        format.html { render :edit }
-        format.json { render json: @mem.errors, status: :unprocessable_entity }
+        Rate.find_or_create(user: current_user, rate: params[:mem][:rate], mem: @mem)
+      end
+        redirect_to action: "index"
+    else
+      respond_to do |format|
+        if @mem.update(mem_params)
+          format.html { redirect_to @mem, notice: 'Mem was successfully updated.' }
+          format.json { render :show, status: :ok, location: @mem }
+        else
+          format.html { render :edit }
+          format.json { render json: @mem.errors, status: :unprocessable_entity }
+        end
       end
     end
   end
